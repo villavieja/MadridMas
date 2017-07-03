@@ -17,17 +17,17 @@ service MadridMas {
 
 message IncidentRequest {
   // latitude is part of the incident location.
-  double latitude;
+  double latitude = 1;
 
   // longitude is part of the incident location.
-  double longitude;
+  double longitude = 2;
 
   // description is the user description in text for
   // the incident reported.
-  string description;
+  string description = 3;
 }
 
 message IncidentResponse {
   // error is empty in case the request was succesful.
-  string error;
+  string error = 1;
 }
