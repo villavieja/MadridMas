@@ -1,10 +1,10 @@
-syntax = "proto3";
+syntax = "proto2";
 
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.madridmas";
 option java_outer_classname = "MadridMasProto";
 
-package madridmas;
+package madridmas_proto;
 
 // Interface exported by the server.
 service MadridMas {
@@ -12,22 +12,22 @@ service MadridMas {
     //
     // Send in incident to the server.
     //
-    rpc SendIncident(IncidentRequest) returns (IncidentResponse) {}
+    rpc SendIncident(SendIncidentRequest) returns (SendIncidentResponse) {}
 }
 
-message IncidentRequest {
+message SendIncidentRequest {
   // latitude is part of the incident location.
-  double latitude = 1;
+  optional double latitude = 1;
 
   // longitude is part of the incident location.
-  double longitude = 2;
+  optional double longitude = 2;
 
   // description is the user description in text for
   // the incident reported.
-  string description = 3;
+  optional string description = 3;
 }
 
-message IncidentResponse {
+message SendIncidentResponse {
   // error is empty in case the request was succesful.
-  string error = 1;
+  optional string error = 1;
 }

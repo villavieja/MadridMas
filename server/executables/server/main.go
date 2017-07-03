@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"net/http"
-
-	pb "proto/madridmas"
 
 	"github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
+	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/grpclog"
+
+	"MadridMas/server/incident"
+	pb "MadridMas/server/proto"
 )
 
 const (
@@ -25,33 +27,35 @@ const (
 
 type MadridMasServer struct{}
 
-var MadridMasServer MadridMasServer
+var myServer MadridMasServer
 
 func (s *MadridMasServer) SendIncident(ctx context.Context, r *pb.SendIncidentRequest) (*pb.SendIncidentResponse, error) {
-	var i Incident
+
+	grpclog.Printf("Received incident %+v", r)
+	var i incident.Incident
 
 	//TODO(sara): check data is correct. Be careful of spammers.
 	// We will reject incidents from unregistered users? anonymous?
 	// We still don't know how to check the picture veracity.
-	i.latitude = r.latitude
-	i.longitude = r.longitude
-	i.description = r.description
+	i.Latitude = *r.Latitude
+	i.Longitude = *r.Longitude
+	i.Description = *r.Description
 
 	db, err := mysql.DialPassword(dbCONNECTIONNAME, dbUSER, dbPASSWORD)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Could not open db: %v", err), 500)
-		return
+		resp := &pb.SendIncidentResponse{}
+		resp.Error = proto.String(fmt.Sprintf("Could not open db: %v", err))
+		return resp, err
 	}
 	defer db.Close()
 	// TODO(sara): Move this to a transaction.
 
-	query := fmt.Sprintf("INSERT INTO incident VALUES(0,%f,%f,'%s',NOW(),0)", i.latitude, i.longitude, i.description)
+	query := fmt.Sprintf("INSERT INTO incident VALUES(0,%f,%f,'%s',NOW(),0)", i.Latitude, i.Longitude, i.Description)
 	stmt, err := db.Prepare(query)
 	resp := &pb.SendIncidentResponse{}
 	if err != nil {
-		resp.error = fmt.Sprintf("Error on insert: %v", err)
+		resp.Error = proto.String(fmt.Sprintf("Error on insert: %v", err))
 	}
-
 	return resp, err
 }
 
@@ -75,6 +79,6 @@ func main() {
 		}
 		grpcServer = grpc.NewServer(grpc.Creds(creds))
 	}
-	pb.RegisterMadridMasServer(grpcServer, &MadridMasServer)
+	pb.RegisterMadridMasServer(grpcServer, &myServer)
 	grpcServer.Serve(lis)
 }
