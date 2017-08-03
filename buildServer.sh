@@ -13,7 +13,7 @@ if [ $# -eq 0 ]; then
   exit 0
 fi
 
-protoc --go_out=./server/proto/ --proto_path=./server/proto/ ./server/proto/madridmas.proto
+protoc --go_out=plugins=grpc:./server/proto/ --proto_path=./server/proto/ ./server/proto/madridmas.proto
 
 # executable can be server or appengine
 for EXECUTABLE in "$@"; do

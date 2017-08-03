@@ -10,24 +10,45 @@ package madridmas_proto;
 service MadridMas {
     // A simple RPC.
     //
-    // Send in incident to the server.
+    // Create in incident to the server.
     //
-    rpc SendIncident(SendIncidentRequest) returns (SendIncidentResponse) {}
+    rpc CreateIncident(CreateIncidentRequest) returns (CreateIncidentResponse) {}
+
+
+    rpc ListIncidents(ListIncidentstRequest) returns (ListIncidentsResponse) {}
 }
 
-message SendIncidentRequest {
+
+message Incident {
   // latitude is part of the incident location.
   optional double latitude = 1;
 
   // longitude is part of the incident location.
   optional double longitude = 2;
 
+  // title of the incident as the user believes should be named.
+  optional string title = 3;
   // description is the user description in text for
   // the incident reported.
-  optional string description = 3;
+  optional string description = 4;
+
 }
 
-message SendIncidentResponse {
+message CreateIncidentRequest {
+  // The incident reported by a user.
+  optional Incident incident = 1;
+}
+
+message CreateIncidentResponse {
   // error is empty in case the request was succesful.
   optional string error = 1;
+}
+
+message ListIncidentstRequest {
+}
+
+message ListIncidentsResponse {
+ // List of all the incidents in the database.
+ // TODO(villavieja): Pending to add a filter.
+ repeated Incident incident = 1;
 }
