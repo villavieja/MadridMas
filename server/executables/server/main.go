@@ -21,42 +21,55 @@ const (
 	// TODO(sara): Replace the username and password for environment variables.
 	// Temporary allow anyone see this.
 	dbCONNECTIONNAME = "madridmas-172613:europe-west1:madridmassql"
-	dbUSER           = "madridmas"
-	dbPASSWORD       = "madridmas"
+	// TODO(sara): Create a different user as root should never be used.
+	// Changed the root password as it has been visible to others in github.
+	dbUSER           = "root"
+	dbPASSWORD       = "Madriz.1996.Nuria"
 )
 
 type MadridMasServer struct{}
 
 var myServer MadridMasServer
 
-func (s *MadridMasServer) SendIncident(ctx context.Context, r *pb.SendIncidentRequest) (*pb.SendIncidentResponse, error) {
+func (s *MadridMasServer) CreateIncident(ctx context.Context, r *pb.CreateIncidentRequest) (*pb.CreateIncidentResponse, error) {
 
 	grpclog.Printf("Received incident %+v", r)
 	var i incident.Incident
+	resp := &pb.CreateIncidentResponse{}
 
 	//TODO(sara): check data is correct. Be careful of spammers.
 	// We will reject incidents from unregistered users? anonymous?
 	// We still don't know how to check the picture veracity.
-	i.Latitude = *r.Latitude
-	i.Longitude = *r.Longitude
-	i.Description = *r.Description
+	// i.Title = *r.Incident.Title
+	i.Latitude = *r.Incident.Latitude
+	i.Longitude = *r.Incident.Longitude
+	i.Description = *r.Incident.Description
+	// Fix the unknown error later.
+	Title :=""
 
 	db, err := mysql.DialPassword(dbCONNECTIONNAME, dbUSER, dbPASSWORD)
 	if err != nil {
-		resp := &pb.SendIncidentResponse{}
 		resp.Error = proto.String(fmt.Sprintf("Could not open db: %v", err))
 		return resp, err
 	}
 	defer db.Close()
 	// TODO(sara): Move this to a transaction.
 
-	query := fmt.Sprintf("INSERT INTO incident VALUES(0,%f,%f,'%s',NOW(),0)", i.Latitude, i.Longitude, i.Description)
-	stmt, err := db.Prepare(query)
-	resp := &pb.SendIncidentResponse{}
-	if err != nil {
+	query := fmt.Sprintf("INSERT INTO incident (fk_user,latitude,longitude,title,description,creation_date,status) VALUES(0, %f,%f,'%s',NOW(),0)", i.Latitude, i.Longitude, Title, i.Description)
+	if _, err = db.Exec(query); err != nil {
 		resp.Error = proto.String(fmt.Sprintf("Error on insert: %v", err))
 	}
 	return resp, err
+}
+
+func (s *MadridMasServer) ListIncidents(ctx context.Context, r *pb.ListIncidentsRequest) (*pb.ListIncidentsResponse, error) {
+	res := &pb.ListIncidentsResponse{}
+	res.Incident = make([]*pb.Incident,0,1)
+		res.Incident = append (res.Incident,
+				&pb.Incident {
+					Description: proto.String("Unknown"),
+				})
+	return res, nil
 }
 
 func main() {

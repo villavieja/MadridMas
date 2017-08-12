@@ -15,7 +15,7 @@ service MadridMas {
     rpc CreateIncident(CreateIncidentRequest) returns (CreateIncidentResponse) {}
 
 
-    rpc ListIncidents(ListIncidentstRequest) returns (ListIncidentsResponse) {}
+    rpc ListIncidents(ListIncidentsRequest) returns (ListIncidentsResponse) {}
 }
 
 
@@ -28,10 +28,10 @@ message Incident {
 
   // title of the incident as the user believes should be named.
   optional string title = 3;
+
   // description is the user description in text for
   // the incident reported.
   optional string description = 4;
-
 }
 
 message CreateIncidentRequest {
@@ -44,7 +44,9 @@ message CreateIncidentResponse {
   optional string error = 1;
 }
 
-message ListIncidentstRequest {
+message ListIncidentsRequest {
+  // filter by title.
+  optional string title = 1;
 }
 
 message ListIncidentsResponse {
